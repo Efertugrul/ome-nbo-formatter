@@ -1,9 +1,13 @@
 import os
+import sys
 import pytest
 import tempfile
 import json
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
+
+# Ensure 'src' is importable as a top-level module
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
 @pytest.fixture
 def sample_xsd_path():

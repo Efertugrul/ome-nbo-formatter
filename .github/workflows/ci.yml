@@ -37,8 +37,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install linkml linkml-runtime
+      - name: Create sample XSD
+        run: |
+          cat > sample.xsd << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:element name="Sample">
+              <xs:complexType>
+                <xs:attribute name="ID" type="xs:string" use="required"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:schema>
+          EOF
       - name: Generate small schema and json-schema
         run: |
-          python src/generator.py tests/data/sample.xsd --output out.yaml || true
+          python src/generator.py sample.xsd --output out.yaml || true
           linkml generate json-schema out.yaml > out.json || true
 
