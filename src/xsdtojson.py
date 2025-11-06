@@ -10,6 +10,12 @@ from collections import defaultdict
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def _local_name(name):
+    try:
+        return str(name).split("}")[-1]
+    except Exception:
+        return str(name) if name is not None else ""
+
 def xsd_to_json_schema(xsd_path: str) -> Dict:
     """
     Convert an XML Schema to JSON Schema
@@ -35,7 +41,7 @@ def xsd_to_json_schema(xsd_path: str) -> Dict:
         # Extract top-level elements
         for element_name, element_type in schema.elements.items():
             try:
-                element_name = element_name.split("}")[-1]  # Remove namespace prefix
+                element_name = _local_name(element_name)  # Remove namespace prefix
                 json_schema["properties"][element_name] = _extract_element_content(element_name, element_type, schema, json_schema)
             except Exception as e:
                 logger.warning(f"Error processing element {element_name}: {str(e)}")
@@ -81,7 +87,7 @@ def _extract_element_content(element_name, element_type, schema, json_schema):
         type_attributes = element_type.type.attributes if hasattr(element_type.type, 'attributes') else {}
         
         for attr_name, attr_type in type_attributes.items():
-            attr_name = attr_name.split("}")[-1]  # Remove namespace prefix
+            attr_name = _local_name(attr_name)
             attr_content = _process_attribute(attr_name, attr_type)
             
             # Add to properties
@@ -108,7 +114,7 @@ def _extract_element_content(element_name, element_type, schema, json_schema):
         try:
             if hasattr(element_type.type, 'attributes'):
                 for attr_name, attr_type in element_type.type.attributes.items():
-                    attr_name = attr_name.split("}")[-1]  # Remove namespace prefix
+                    attr_name = _local_name(attr_name)
                     attr_content = _process_attribute(attr_name, attr_type)
                     
                     # Add to properties
@@ -127,7 +133,7 @@ def _extract_element_content(element_name, element_type, schema, json_schema):
             if hasattr(element_type.type, 'content') and element_type.type.content is not None:
                 if hasattr(element_type.type.content, 'elements'):
                     for child_name, child_type in element_type.type.content.elements.items():
-                        child_name = child_name.split("}")[-1]  # Remove namespace prefix
+                        child_name = _local_name(child_name)
                         child_content = {
                             "type": "object",
                             "properties": {}
@@ -147,7 +153,7 @@ def _extract_element_content(element_name, element_type, schema, json_schema):
         if hasattr(type_content, 'base_type') and type_content.base_type is not None:
             base_type = type_content.base_type
             if hasattr(base_type, 'name') and base_type.name is not None:
-                base_name = base_type.name.split("}")[-1]  # Remove namespace
+                base_name = _local_name(base_type.name)
                 
                 # Add information about the base type
                 element_content["baseType"] = base_name
@@ -156,7 +162,7 @@ def _extract_element_content(element_name, element_type, schema, json_schema):
                 try:
                     if hasattr(base_type, 'attributes'):
                         for attr_name, attr_type in base_type.attributes.items():
-                            attr_name = attr_name.split("}")[-1]  # Remove namespace prefix
+                            attr_name = _local_name(attr_name)
                             attr_content = _process_attribute(attr_name, attr_type)
                             
                             # Add to properties if not already present
@@ -190,9 +196,32 @@ def _process_attribute(attr_name, attr_type):
     Returns:
         A dictionary representing the attribute's content
     """
+    # Determine declared and base XSD type names
+    declared_type_name = None
+    base_type_name = None
+    try:
+        if hasattr(attr_type, 'type') and hasattr(attr_type.type, 'name'):
+            declared_type_name = attr_type.type.name
+            # Walk restrictions to primitive base
+            t = attr_type.type
+            seen = set()
+            while hasattr(t, 'base_type') and t.base_type is not None and t.base_type not in seen:
+                seen.add(t)
+                bt = t.base_type
+                if hasattr(bt, 'name') and bt.name:
+                    base_type_name = bt.name
+                t = bt
+    except Exception:
+        pass
+
     attr_content = {
-        "type": _map_xsd_type_to_json_type(attr_type.type.name if hasattr(attr_type, 'type') and hasattr(attr_type.type, 'name') else "string")
+        "type": _map_xsd_type_to_json_type(declared_type_name if declared_type_name else "string")
     }
+    # Preserve raw XSD type info for downstream mapping
+    if declared_type_name:
+        attr_content["xsdType"] = str(declared_type_name)
+    if base_type_name:
+        attr_content["xsdBaseType"] = str(base_type_name)
     
     # Add description if available
     if hasattr(attr_type, 'annotation') and attr_type.annotation is not None:

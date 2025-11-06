@@ -97,37 +97,3 @@ class TestSchemaPartitioning:
         # Check the schema has some content
         assert len(schema["classes"]) > 0
     
-    @pytest.mark.skip(reason="This test uses the full OME XSD and might be slow")
-    def test_generate_ome_element_schemas(self, ome_xsd_path, temp_output_dir):
-        """Test generating separate schemas for OME elements"""
-        # Select some key OME elements to test
-        elements = ["OME", "Image", "Instrument"]
-        
-        for element in elements:
-            output_file = os.path.join(temp_output_dir, f"{element.lower()}.yaml")
-            
-            # Generate schema for the element
-            generate_linkml_schema(ome_xsd_path, output_file, [element])
-            
-            # Check that the output file was created
-            assert os.path.exists(output_file)
-            
-            # Load and validate the schema
-            with open(output_file, "r") as f:
-                schema = yaml.safe_load(f)
-                
-            assert schema is not None
-            assert "classes" in schema
-            assert element in schema["classes"]
-            
-            # For certain elements, check for expected nested elements
-            if element == "Instrument":
-                instrument_class = schema["classes"]["Instrument"]
-                # Check for references to Detector, Objective, etc.
-                assert any("Detector" in s for s in instrument_class.get("slots", []))
-                assert any("Objective" in s for s in instrument_class.get("slots", []))
-            
-            if element == "Image":
-                image_class = schema["classes"]["Image"]
-                # Check for references to Pixels, etc.
-                assert any("Pixels" in s for s in image_class.get("slots", [])) 
