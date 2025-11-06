@@ -19,7 +19,7 @@ from linkml_runtime.dumpers import yaml_dumper
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def generate_linkml_schema(ome_xsd_path, output_path=None, top_level_elements=None, partition=False, schema_id=None, schema_name=None, schema_title=None, default_prefix=None, extra_prefixes=None):
+def generate_linkml_schema(ome_xsd_path, output_path=None, top_level_elements=None, partition=False, schema_id=None, schema_name=None, schema_title=None, default_prefix=None, extra_prefixes=None, json_output_path=None):
     """
     Generate a LinkML schema from an OME XSD file.
     
@@ -60,6 +60,17 @@ def generate_linkml_schema(ome_xsd_path, output_path=None, top_level_elements=No
             if filtered_defs:
                 json_schema["definitions"] = filtered_defs
         
+        # Optionally write intermediate JSON Schema
+        if json_output_path:
+            try:
+                out_dir = os.path.dirname(json_output_path)
+                if out_dir:
+                    os.makedirs(out_dir, exist_ok=True)
+                with open(json_output_path, 'w') as jf:
+                    json.dump(json_schema, jf, indent=2)
+            except Exception as e:
+                logger.warning(f"Failed writing JSON Schema to {json_output_path}: {e}")
+
         # Convert JSON Schema to LinkML
         metadata = {
             "schema_id": schema_id,
@@ -596,6 +607,7 @@ if __name__ == "__main__":
     parser.add_argument("--title", dest="schema_title", help="Override schema title")
     parser.add_argument("--default-prefix", dest="default_prefix", help="Override default prefix")
     parser.add_argument("--extra-prefix", action='append', default=[], help="Extra prefix mapping in form prefix=URI; can be repeated")
+    parser.add_argument("--json-out", dest="json_output", help="Optional path to write the intermediate JSON Schema")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
     
     args = parser.parse_args()
@@ -623,4 +635,5 @@ if __name__ == "__main__":
         schema_title=args.schema_title,
         default_prefix=args.default_prefix,
         extra_prefixes=extra_prefixes if extra_prefixes else None,
+        json_output_path=args.json_output,
     )

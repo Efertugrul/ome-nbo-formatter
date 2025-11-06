@@ -62,7 +62,7 @@ done
 # Check if required files and directories exist
 if [ ! -f "$XSD_FILE" ]; then
     echo "Error: XSD file not found: $XSD_FILE"
-    echo "Run 'python -m src.download_xsd' to download the OME XSD file."
+    echo "Provide a valid XSD with --input or fetch NBO via src/fetch_nbo.py"
     exit 1
 fi
 
