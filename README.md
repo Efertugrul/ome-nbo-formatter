@@ -22,7 +22,7 @@ Optional (for downstream checks):
 Fetch only required parts of the public NBO repo using git sparse checkout.
 
 ```bash
-python Efe-Will-OME-Research/src/fetch_nbo.py \
+python ome-nbo-formatter/src/fetch_nbo.py \
   --repo-url https://github.com/WU-BIMAC/NBOMicroscopyMetadataSpecs.git \
   --ref master \
   --dest NBOMicroscopyMetadataSpecs \
@@ -33,13 +33,13 @@ python Efe-Will-OME-Research/src/fetch_nbo.py \
 ## Generate LinkML
 ```bash
 # Full schema
-python Efe-Will-OME-Research/src/generator.py <path/to/schema.xsd> --output out.yaml -v
+python ome-nbo-formatter/src/generator.py <path/to/schema.xsd> --output out.yaml -v
 
 # Partitioned (one file per class)
-python Efe-Will-OME-Research/src/generator.py <path/to/schema.xsd> --output out_dir --partition -v
+python ome-nbo-formatter/src/generator.py <path/to/schema.xsd> --output out_dir --partition -v
 
 # Restrict to specific top-level elements
-python Efe-Will-OME-Research/src/generator.py <path/to/schema.xsd> --output out.yaml --elements Image,Pixels -v
+python ome-nbo-formatter/src/generator.py <path/to/schema.xsd> --output out.yaml --elements Image,Pixels -v
 ```
 
 Advanced metadata overrides:
@@ -55,17 +55,17 @@ Advanced metadata overrides:
 Compare classes/attributes/children to ensure nothing is lost.
 
 ```bash
-python Efe-Will-OME-Research/src/verify_equivalence.py <path/to/schema.xsd> out.yaml
+python ome-nbo-formatter/src/verify_equivalence.py <path/to/schema.xsd> out.yaml
 ```
 
 ## Batch over NBO schemas
 Regenerate and verify across all NBO XSDs; auto-fetch if missing.
 
 ```bash
-python Efe-Will-OME-Research/src/batch_verify_nbo.py --auto-fetch
+python ome-nbo-formatter/src/batch_verify_nbo.py --auto-fetch
 
 # Or explicitly
-python Efe-Will-OME-Research/src/batch_verify_nbo.py \
+python ome-nbo-formatter/src/batch_verify_nbo.py \
   --nbo-root NBOMicroscopyMetadataSpecs \
   --out-dir _nbo_batch
 ```
