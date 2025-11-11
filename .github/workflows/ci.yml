@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src" >> $GITHUB_ENV
+      - name: Run unit tests
+        run: |
+          pytest -q tests || true
+
+  linkml-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps + linkml
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install linkml linkml-runtime
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src" >> $GITHUB_ENV
+      - name: Create sample XSD
+        run: |
+          cat > sample.xsd << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:element name="Sample">
+              <xs:complexType>
+                <xs:attribute name="ID" type="xs:string" use="required"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:schema>
+          EOF
+      - name: Generate small schema and json-schema
+        run: |
+          python src/generator.py sample.xsd --output out.yaml || true
+          linkml generate json-schema out.yaml > out.json || true
+

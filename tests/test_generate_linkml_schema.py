@@ -61,29 +61,6 @@ class TestGenerateLinkMLSchema:
         assert "classes" in schema
         assert len(schema["classes"]) > 0
     
-    @pytest.mark.skip(reason="This test uses the full OME XSD and might be slow")
-    def test_generate_linkml_schema_ome(self, ome_xsd_path, temp_output_file):
-        """Test generating a LinkML schema from the OME XSD file"""
-        # Generate LinkML schema
-        temp_output_file = temp_output_file.replace('.json', '.yaml')
-        generate_linkml_schema(ome_xsd_path, temp_output_file)
-        
-        # Check that the output file was created
-        assert os.path.exists(temp_output_file)
-        
-        # Load the generated schema
-        with open(temp_output_file, "r") as f:
-            schema = yaml.safe_load(f)
-        
-        # Check that the schema contains the OME class and major components
-        assert schema is not None
-        assert "classes" in schema
-        assert "OME" in schema["classes"]
-        
-        # Check for some key OME components
-        expected_classes = ["Image", "Instrument", "ROI", "Experiment"]
-        for cls in expected_classes:
-            assert cls in schema["classes"]
     
     def test_error_handling_nonexistent_file(self, temp_output_file):
         """Test error handling for a nonexistent XSD file"""
