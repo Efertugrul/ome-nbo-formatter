@@ -57,6 +57,8 @@ old_ome_schemas/
 test_schemas/
 test_partitioned_schemas/
 *.yaml
+!ome.yaml
+!nbo-q.yaml
 
 # Project specific files to ignore
 changelog.txt
