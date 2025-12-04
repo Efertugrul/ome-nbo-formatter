@@ -1339,7 +1339,6 @@
         },
         "@Type": {
           "type": "string",
-          "xsdBaseType": "{http://www.w3.org/2001/XMLSchema}string",
           "description": [
             "The type of manipulation performed."
           ]
@@ -1724,7 +1723,6 @@
       "properties": {
         "@Type": {
           "type": "string",
-          "xsdBaseType": "{http://www.w3.org/2001/XMLSchema}string",
           "description": [
             "A term to describe the type of experiment."
           ]
